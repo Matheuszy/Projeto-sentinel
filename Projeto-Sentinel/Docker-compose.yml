@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Banco de Dados
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: postgres-sentinel
+    environment:
+      POSTGRES_DB: sentinel_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Mensageria
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq-sentinel
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação Java (Spring Boot)
+  sentinel-app:
+    build:
+      context: ./sentinel-api
+      dockerfile: Dockerfile
+    container_name: sentinel-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/sentinel_db
+      - SPRING_RABBITMQ_HOST=rabbitmq
