@@ -4,7 +4,7 @@ import joblib
 import pandas as pd
 
 
-model = joblib.load('models/modelo_fraude.pkl')
+model = joblib.load('model/modelo_fraude.pkl')
 
 
 def callback(ch, method, properties, body):
@@ -17,7 +17,7 @@ def callback(ch, method, properties, body):
     prediction = model.predict(input_data)
 
     if prediction[0] == -1:
-        print(f" !!! ALERTA DE FRAUDE !!! Transação ID: {transaction_data['transaction_id']}")
+        print(f" ALERTA DE FRAUDE! Transação ID: {transaction_data['transaction_id']}")
 
     else:
         print(f" [OK] Transação legítima: {transaction_data['transaction_id']}")
@@ -25,9 +25,9 @@ def callback(ch, method, properties, body):
 connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
 
-channel.queue_declare(queue='finance.queue', durable=True)
+channel.queue_declare(queue='transaction.inbound', durable=True)
 
-channel.basic_consume(queue='finance.queue', on_message_callback=callback, auto_ack=True)
+channel.basic_consume(queue='transaction.inbound', on_message_callback=callback, auto_ack=True)
 
 
 channel.start_consuming()
