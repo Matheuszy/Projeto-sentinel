@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS transactions (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    transaction_id VARCHAR(255) NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
-    time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    transaction_id INTEGER NOT NULL UNIQUE
-    merchant_category BIGINT NOT NULL
+    merchant_category VARCHAR(100),
+    transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 );
